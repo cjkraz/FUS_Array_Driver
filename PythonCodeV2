@@ -1,0 +1,69 @@
+import time
+import serial
+import serial.tools.list_ports
+
+def portConnect():
+
+	ports = serial.tools.list_ports.comports()
+	commPort = 'none'
+	numConnection = len(ports)
+	
+	for i in range(0,numConnection):
+		port = ports[i]
+		strPort = str(port)
+		
+		if 'Nu-Link' in strPort:
+			splitPort = strPort.split(' ')
+			commPort = (splitPort[0])
+			print (commPort)
+			
+	return commPort
+	
+def commCheck(comP):
+	if comP != 'none':
+		s = serial.Serial(comP)
+		s.write("sine")
+		time.sleep(0.1)
+		x = s.read()
+		if x == 'x':
+			print ('Connected successfully')
+	else:
+		print('Connection Failure')
+		
+	return ()
+	
+commPort = portConnect()
+#commCheck(commPort)
+
+def sendInfo(comP):
+	s = serial.Serial(comP)
+	s.write("Chan:3,Cnfg:1,Ampl:0.9,Freq:5000000,Phas:0,Dlay:0.00,Ofst:0.00\n\r")
+	time.sleep(0.4)
+	x = s.read(1)
+	#print(x)
+	if (x == '1'):
+		print(x)
+		s.write("Chan:2,Cnfg:1,Ampl:0.9,Freq:5000000,Phas:90,Dlay:0.00,Ofst:0.00\n\r")
+		time.sleep(0.4)
+	x = s.read(1)
+	if (x == '2'):
+		print(x)
+		s.write("Chan:1,Cnfg:1,Ampl:0.9,Freq:5000000,Phas:180,Dlay:0.00,Ofst:0.00\n\r")
+		time.sleep(0.4)
+	x = s.read(1)
+	if (x == '3'):
+		print(x)
+		s.write("Chan:0,Cnfg:1,Ampl:0.9,Freq:5000000,Phas:270,Dlay:0.00,Ofst:0.00\n\r")
+		time.sleep(0.4)
+	#x = s.read(50)
+	# user input config 3 to trigger
+	trig = raw_input("Press enter to trigger or q to quit")
+	if (trig == ' '):
+		s.write("Chan: ,Cnfg:3")
+		print("Triggered!")
+	elif(trig == "q"):
+	#print (x)
+		print ('----Done-----')
+		return ()
+
+sendInfo(commPort)
