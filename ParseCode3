@@ -1,0 +1,113 @@
+#include "mbed.h"
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <string>
+
+Serial pc(USBTX, USBRX); // tx, rx
+DigitalOut led1(LED1);
+
+char *chan[9];
+int i=0;
+int ack = 1;
+
+void fillStruct();
+void parString();
+
+
+struct Chan{
+    int Cnfg; //(sine:0, bsin:1, trigON:2, trigOFF:3)
+    int Chan; //(0-3)
+    float Ampl; //pu
+    int Freq;
+    float Phas;
+    float Dlay;
+    float BPer;
+    float PatP;
+    int Cycl;
+} string1;
+
+//char str[] = "Chan:1,Cnfg:1,Ampl:2.00,Freq:1800000,Phas:180,Dlay:0.001,BPer:1.00";
+
+char str[128];
+
+int main(){
+
+    while(1){
+        while(pc.readable()){  
+            led1 = 0;         
+            scanf("%s", str);
+            parString();     
+            str[0] = '\0';
+            if(ack >=4){ ack = 0;}
+            pc.printf("%i", ack);
+            ack++;
+        }
+        led1 = 1;
+    }
+    return (0);
+}
+
+
+
+void parString(){
+    char *token = strtok(str, ":");
+    
+    while (token != NULL)
+    {
+        token = strtok(NULL, ",");
+        chan[i] = token;
+        i++;
+        if(i==9){i=0;break;}
+    }
+    fillStruct();
+}
+
+void fillStruct(){
+    int t = 0;
+
+string1.Chan = atoi(chan[0]);
+        //pc.printf("Channel: %i\n", string1.Chan);
+    
+while(t < 9){
+        
+    char *var;
+    char *val = chan[t];
+        
+    var = strtok_r(val, ":", &val);
+    
+        if(strcmp("Cnfg", var)==0){
+            string1.Cnfg = atoi(val);
+            //pc.printf("Config has: %i in it\n", string1.Cnfg);
+            }
+        if(strcmp("Ampl", var)==0){
+            string1.Ampl = atof(val);
+            //pc.printf("Amplitude has: %f in it\n", string1.Ampl);
+            }
+        if(strcmp("Freq", var)==0){
+            string1.Freq = atoi(val);
+            //pc.printf("Freq has: %i in it\n", string1.Freq);
+            }
+        if(strcmp("Phas", var)==0){
+            string1.Phas = atof(val);
+            //pc.printf("Phase has: %i in it\n", string1.Phas);
+            }
+        if(strcmp("Dlay", var)==0){
+            string1.Dlay = atof(val);
+            //pc.printf("Delay has: %f in it\n", string1.Dlay);
+            }
+        if(strcmp("BPer", var)==0){
+            string1.BPer = atof(val);
+            //pc.printf("Offset has: %f in it\n", string1.BPer);
+            }
+        if(strcmp("PatP", var)==0){
+            string1.PatP = atof(val);
+            //printf("Patern period has: %f in it\n", string1.PatP);
+            }
+        if(strcmp("Cylc", var)==0){
+            string1.Cycl = atoi(val);
+            //printf("Number of cycles has: %i in it\n", string1.Cycl);
+            }
+        t++;
+    }
+}
