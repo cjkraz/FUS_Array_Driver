@@ -1,10 +1,11 @@
 /***********************************
 Date:Mar.18th,2020
-Author: Gabriel Hall
+Author: Gabriel Hall and Alexander Kossaian
 Decription: Starting case statements to write register values to AD9106 based on user input
-Next Addition: Phase 
+Next Addition: Phase control
 ***********************************/
 
+//********* Header files **************//
 #include "mbed.h" 
 #include "spidegproj.h"
 #include <stdio.h>
@@ -12,7 +13,8 @@ Next Addition: Phase
 #include <iostream>
 #include <string>
 
-#define NO_ACTION   0
+//********** Declarations **********//
+#define NO_ACTION   0//Cmds for incoming string
 #define SINE        1
 #define BSIN        2
 #define TRIGON      3
@@ -20,7 +22,7 @@ Next Addition: Phase
 
 #define MAX_CHAN    4// Set as many as youd like
 
-//****************M487 pinout declaration*****************************
+//****************M487 pinout/protocol declaration*****************************
 Serial pc(USBTX, USBRX); // tx, rx
 SPI dds(PA_8, PA_9, PA_10);//d11-mosi, d12-miso, d13-sclk
 DigitalOut cs1(D12);//DDS1, can make an array of CS if multiple dds'
@@ -67,8 +69,17 @@ struct Chan{
     float PatP;//Whole pattern period max 5.8ish mS at fclk=180MHz
 } string1;
 
-
-
+/*******************************************************
+Function: main() 
+Description: Main houses a while loop to keep the MCU Running
+             during the use of the AD9106. The configuration registers
+             are before the while loop so theyre done once at the beginning
+             of the program. Inside the while loop serial communication
+             is achieved and the data recieved goes through a case statement to
+             determine proper configuration of the AD9106 based on the command.
+Author: Gabriel Hall and Alexander Kossaian
+Function #: 01
+********************************************************/
 int main() {
     
     configSPImcu();//Configure system
@@ -94,18 +105,22 @@ int main() {
             case SINE://1
                 led1=0;
                 sine_DDS();
+                string1.Cnfg = 0;
                 break;
 
             case BSIN://2
                 bsine_DDS();
+                string1.Cnfg = 0;
                 break;
 
             case TRIGON://3
                 trigger_ON();
+                string1.Cnfg = 0;
                 break;
 
             case TRIGOFF://4
                 trigger_OFF();
+                string1.Cnfg = 0;
                 break;
 
             case NO_ACTION://0
@@ -120,6 +135,7 @@ Description: Configures SPI protocol used for the M487,
              sets chip select and trigger to high
              (Active lows)
 Author: Gabriel Hall
+Function #: 02
 ********************************************************/
 void configSPImcu(){
     
@@ -138,6 +154,7 @@ Function: writeSPI()
 Description: write function being passed in generic data
              to be sent to ad9106
 Author: Gabriel Hall
+Function #: 03
 ********************************************************/
 void writeSPI(int32_t data){
     cs1=0;
@@ -151,6 +168,7 @@ Function: configDDSRegisters()
 Description: configures power, spi, calibraiton, and 
              pat_status for run ability from trigger
 Author: Gabriel Hall
+Function #: 04
 ********************************************************/
 void configDDSRegisters(){
     
@@ -158,8 +176,8 @@ void configDDSRegisters(){
     dds.lock();
     writeSPI(spi);
     dds.unlock();
-    spi = (WRITE | SPICONFIG | 0x00000000);
-    int32_t power = (WRITE | POWERCONFIG | 0x00000E00);
+    spi = (WRITE | SPICONFIG | 0x00000000);//normal spi configuration
+    int32_t power = (WRITE | POWERCONFIG | 0x00000E00);//Reset values of 
     int32_t pat_status = (WRITE | PAT_STATUS | 0x00000001);
     int32_t calconfig = (WRITE | CALCONFIG | 0x00000002);
     dds.lock();
@@ -175,6 +193,7 @@ void configDDSRegisters(){
 Function: fillStruct()
 Description: fills struct string1 with data
 Author: Alexander Kossaian 
+Function #: 05
 ********************************************************/
 void fillStruct(){
     int t = 0;
@@ -228,6 +247,7 @@ while(t < 9){
 Function: parString()
 Description: Parses incoming string
 Author: Alexander Kossaian 
+Function #: 06
 ********************************************************/   
 void parString(){
     char *token = strtok(str, ":");
@@ -246,6 +266,7 @@ void parString(){
 Function: frequency_calc()
 Description: calculates tuning words needed for wanted frequency
 Author: Gabriel Hall
+Function #: 07
 ********************************************************/
 void frequency_calc(){
 
@@ -282,6 +303,7 @@ void frequency_calc(){
 Function: dgain_calc()
 Description: calculates digital gain register (0 -> 1 PU)
 Author: Gabriel Hall
+Function #: 08
 ********************************************************/
 void dgain_calc(){
         
@@ -313,6 +335,7 @@ void dgain_calc(){
 Function: phase_calc()
 Description: Calculates phase shift for channels
 Author: Gabriel Hall
+Function #: 09
 ********************************************************/
 void phase_calc(){
     
@@ -352,6 +375,7 @@ void phase_calc(){
 Function: delay_calc()
 Description: calculates delay for each channel
 Author: Gabriel Hall
+Function #: 10
 ********************************************************/ 
 void delay_calc(){
     
@@ -385,6 +409,7 @@ Description: configures overall wave configuration register
              registers. Drives trigger low after to activate
              AD9106
 Author: Gabriel Hall
+Function #: 11
 ***************************************************************************************************************/
 void trigger_ON(){
     
@@ -416,6 +441,7 @@ void trigger_ON(){
 Function: trigger_OFF()
 Description: turns AD9106 off
 Author: Gabriel Hall
+Function #: 12
 ********************************************************/
 void trigger_OFF(){
 
@@ -431,6 +457,7 @@ Function: sine_wave_config()
 Description: configures continuous sine waves and pattern
              period.
 Author: Gabriel Hall
+Function #: 13
 ********************************************************/
 void sine_wave_config(){
     
@@ -482,6 +509,7 @@ Function: set_cycles()
 Description: Sets cycles for pattern repeat for each channel. Info
             sent in trigger_ON() function
 Author: Gabriel Hall
+Function #: 14
 ********************************************************/ 
 void set_cycles(){
     
@@ -510,6 +538,7 @@ void set_cycles(){
 Function: set_Bcycles()
 Description: Sets cycles in sinBurst for each channel burst period
 Author: Gabriel Hall
+Function #: 15
 ********************************************************/ 
 void set_Bcycles(){
     
@@ -549,6 +578,7 @@ void set_Bcycles(){
 Function: pattern_Period()
 Description: Sets cycles in sinBurst for each channel
 Author: Gabriel Hall
+Function #: 16
 ********************************************************/
  void pattern_Period(){
 
@@ -568,6 +598,7 @@ Author: Gabriel Hall
 Function: sine_DDS()
 Description: holds functions for sine wave configuring
 Author: Gabriel Hall
+Function #: 17
 ********************************************************/
 void sine_DDS(){
 
@@ -582,6 +613,7 @@ void sine_DDS(){
 Function: bsine_DDS()
 Description: holds functions for burst sine wave configuring
 Author: Gabriel Hall
+Function #: 18
 ********************************************************/
 void bsine_DDS(){
 
