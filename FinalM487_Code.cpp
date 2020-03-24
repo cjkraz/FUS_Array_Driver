@@ -333,39 +333,58 @@ void dgain_calc(){
 
 /*******************************************************
 Function: phase_calc()
-Description: Calculates phase shift for channels
+Description: Calculates phase shift for channels. 
+             This is what phase shift should be
 Author: Gabriel Hall
 Function #: 09
 ********************************************************/
 void phase_calc(){
     
     int32_t ph_w = 0;
-    float max = 1/(string1.Freq);
-    float cyc = 180000000*max;//number of cycles of clock inside freq
-    if(string1.Phas > 359){
-        string1.Phas = 0;
-        }
-    float factor = cyc/360;    
-    float phase = string1.Phas*factor; 
-    ph_w = (int32_t)phase;
+    
+    float phase = (string1.Phas/360);// Make value P.U.
+    float ph = phase*4096;//Resolution may be 65535 based on AD answer as to why phase was not working
+    ph_w = (int32_t)ph;//Truncate decimal
+    ph_w = ph_w <<4;//Based on AD software output, might not need this shift
+
        
     int32_t phase_word = 0;
     
     switch (string1.Chan){
-    
+            
         case 0:
-            phase_word = (WRITE | START_DLY1 | ph_w);//Switch to DDSN_PW addresses if you get phase working
+            if(invert == 1){
+                phase_word = (WRITE | DDS1_PW | ph_w);
+            }
+            else{
+                phase_word = (WRITE | DDS1_PW | ph_w);
+            }
             break;
         case 1:
-            phase_word = (WRITE | START_DLY2 | ph_w);
+            if(invert == 1){
+                phase_word = (WRITE | DDS2_PW | ph_w);
+            }
+            else{
+                phase_word = (WRITE | DDS2_PW | ph_w);
+            }
             break;
         case 2:
-            phase_word = (WRITE | START_DLY3 | ph_w);
+            if(invert == 1){
+                phase_word = (WRITE | DDS3_PW | ph_w);
+            }
+            else{
+                phase_word = (WRITE | DDS3_PW | ph_w);
+            }
             break;
         case 3:
-            phase_word = (WRITE | START_DLY4 | ph_w);
+            if(invert ==1){
+                phase_word = (WRITE | DDS4_PW | ph_w);
+            }
+            else{
+                phase_word = (WRITE | DDS4_PW | ph_w);
+            }
             break;
-        } 
+    }
     dds.lock();
     writeSPI(phase_word);
     dds.unlock();  
