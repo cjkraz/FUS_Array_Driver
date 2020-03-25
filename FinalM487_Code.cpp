@@ -353,36 +353,19 @@ void phase_calc(){
     switch (string1.Chan){
             
         case 0:
-            if(invert == 1){
                 phase_word = (WRITE | DDS1_PW | ph_w);
-            }
-            else{
-                phase_word = (WRITE | DDS1_PW | ph_w);
-            }
             break;
+            
         case 1:
-            if(invert == 1){
                 phase_word = (WRITE | DDS2_PW | ph_w);
-            }
-            else{
-                phase_word = (WRITE | DDS2_PW | ph_w);
-            }
             break;
+            
         case 2:
-            if(invert == 1){
                 phase_word = (WRITE | DDS3_PW | ph_w);
-            }
-            else{
-                phase_word = (WRITE | DDS3_PW | ph_w);
-            }
             break;
+            
         case 3:
-            if(invert ==1){
                 phase_word = (WRITE | DDS4_PW | ph_w);
-            }
-            else{
-                phase_word = (WRITE | DDS4_PW | ph_w);
-            }
             break;
     }
     dds.lock();
