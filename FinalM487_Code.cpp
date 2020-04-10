@@ -82,8 +82,8 @@ Function #: 01
 ********************************************************/
 int main() {
     
-    configSPImcu();//Configure system
-    configDDSRegisters();
+    configSPImcu();//Configure SPI parameters
+    configDDSRegisters();//Default register values for SPI protocol/Power
       
     while(true){
         
