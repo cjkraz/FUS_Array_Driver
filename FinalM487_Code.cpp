@@ -104,7 +104,7 @@ int main() {
         switch (string1.Cnfg) {// CONGIFURE CONFIG TO 0 TO SHOW MESSAGE HAS BEEN PROCESSED
 
             case SINE://1
-                led1=0;
+                //led1=0; //Troubleshooting
                 sine_DDS();
                 string1.Cnfg = 0;
                 break;
