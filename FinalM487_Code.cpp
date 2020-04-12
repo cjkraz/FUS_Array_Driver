@@ -13,7 +13,7 @@ Next Addition: Phase control
 #include <iostream>
 #include <string>
 
-//********** Declarations **********//
+//********** Definitions **********//
 #define NO_ACTION   0//Cmds for incoming string
 #define SINE        1
 #define BSIN        2
