@@ -85,10 +85,10 @@ int main() {
     configSPImcu();//Configure SPI parameters
     configDDSRegisters();//Default register values for SPI protocol/Power
     
-pc.gets(acknolegment, 4);
-if (strcmp("ack", acknolegment)==0){
-    pc.printf("ack1");
-    }     
+    pc.gets(acknolegment, 4);
+    if (strcmp("ack", acknolegment)==0){
+        pc.printf("ack1");
+        }     
     
     while(true){
         
