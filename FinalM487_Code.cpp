@@ -187,7 +187,7 @@ void configDDSRegisters(){
     writeSPI(calconfig);
     writeSPI(pat_status);
     dds.unlock();
-    led1 = 1;
+    //led1 = 1; //Troubleshooting
 }
 
 /*******************************************************
@@ -309,8 +309,8 @@ Function #: 08
 void dgain_calc(){
         
     float dgain = string1.Ampl*1024;//Normalizing gain from 0 to 1
-    int32_t gain = (int32_t)dgain;
-    gain = gain << 4;
+    int32_t gain = (int32_t)dgain;// Proper Truncation
+    gain = gain << 4;// Gain registers dont bits [3:0] therefore bit shift result left 4 bits
     int32_t gain_word = 0; 
     switch (string1.Chan){
     
@@ -348,25 +348,24 @@ void phase_calc(){
     ph_w = (int32_t)ph;//Truncate decimal
     ph_w = ph_w <<4;//Based on AD software output, might not need this shift
 
-       
     int32_t phase_word = 0;
     
     switch (string1.Chan){
             
         case 0:
-                phase_word = (WRITE | DDS1_PW | ph_w);
+            phase_word = (WRITE | DDS1_PW | ph_w);
             break;
             
         case 1:
-                phase_word = (WRITE | DDS2_PW | ph_w);
+            phase_word = (WRITE | DDS2_PW | ph_w);
             break;
             
         case 2:
-                phase_word = (WRITE | DDS3_PW | ph_w);
+            phase_word = (WRITE | DDS3_PW | ph_w);
             break;
             
         case 3:
-                phase_word = (WRITE | DDS4_PW | ph_w);
+            phase_word = (WRITE | DDS4_PW | ph_w);
             break;
     }
     dds.lock();
@@ -382,9 +381,11 @@ Function #: 10
 ********************************************************/ 
 void delay_calc(){
     
-    float delay = (string1.Dlay/string1.PatP)*65536;
-    int32_t del= (int32_t)delay;
+    float delay = (string1.Dlay/string1.PatP)*65536; //Dlay and PatP in mSec, 2^16 resolution for delay registers
+    int32_t del= (int32_t)delay; //Truncations 
+    
     int32_t delay_word = 0;
+    
     switch (string1.Chan){
     
         case 0:
@@ -416,13 +417,13 @@ Function #: 11
 ***************************************************************************************************************/
 void trigger_ON(){
     
-    int32_t wav2_1config = (WRITE | WAV2_1CONFIG | 0x00003232); 
-    int32_t wav4_3config = (WRITE | WAV4_3CONFIG | 0x00003232); 
-    int32_t ram_update = (WRITE | RAMUPDATE | 0x00000001);
-    int32_t ram_update2 = (WRITE | RAMUPDATE | 0x00000000);
+    int32_t wav2_1config = (WRITE | WAV2_1CONFIG | 0x00003232); //Configure wave to be sine/Burst sine
+    int32_t wav4_3config = (WRITE | WAV4_3CONFIG | 0x00003232); //Configure wave to be sine/Burst sine
+    int32_t ram_update = (WRITE | RAMUPDATE | 0x00000001);// Have to write 1 to Ramupdate to update shadow registers to active registers
+    int32_t ram_update2 = (WRITE | RAMUPDATE | 0x00000000);//Reset ramupdate value
     
-    int32_t pat43 = (pat_period[3] | pat_period[2]);
-    int32_t pat21 = (pat_period[1] | pat_period[0]);
+    int32_t pat43 = (pat_period[3] | pat_period[2]);// Update pattern period registers together 
+    int32_t pat21 = (pat_period[1] | pat_period[0]);// Update pattern period registers together
     
     int32_t dac43pat = (WRITE | DAC4_3PATx | pat43);
     int32_t dac21pat = (WRITE | DAC2_1PATx | pat21);
@@ -437,7 +438,7 @@ void trigger_ON(){
     wait(0.00001);
     writeSPI(ram_update2);
     dds.unlock();
-    trigger_ad = 0;    
+    trigger_ad = 0;//Activate wave generation by setting Trigger to 0    
 }
 
 /*******************************************************
@@ -448,11 +449,11 @@ Function #: 12
 ********************************************************/
 void trigger_OFF(){
 
-    int32_t ram_update = (WRITE | RAMUPDATE | 0x00000000);
+    int32_t ram_update = (WRITE | RAMUPDATE | 0x00000000);//Force ramupdate to 0
     dds.lock();
     writeSPI(ram_update);
     dds.unlock();
-    trigger_ad = 1;        
+    trigger_ad = 1;// Turn off AD9106         
 }
 
 /*******************************************************
@@ -464,7 +465,7 @@ Function #: 13
 ********************************************************/
 void sine_wave_config(){
     
-    int32_t patperiod = (WRITE | PAT_PERIOD | 0x0000FFFF);  
+    int32_t patperiod = (WRITE | PAT_PERIOD | 0x0000FFFF);//Setting maximum available pattern period
     
     switch(string1.Chan){
         case 0:{
@@ -478,7 +479,7 @@ void sine_wave_config(){
             
         case 1:{
             wave_config[1] = 0x00003200; //Modulus for more AD9106's, also setting for continuous sine wave
-            int32_t dds_cyc2 = (WRITE | DDS_CYC2 | 0x00000000);
+            int32_t dds_cyc2 = (WRITE | DDS_CYC2 | 0x00000000);//Repeat indefinetly
             dds.lock();
             writeSPI(patperiod);
             writeSPI(dds_cyc2);
@@ -487,7 +488,7 @@ void sine_wave_config(){
             
         case 2:{
             wave_config[2] = 0x00000032; //Modulus for more AD9106's, also setting for continuous sine wave
-            int32_t dds_cyc3 = (WRITE | DDS_CYC3 | 0x00000000);
+            int32_t dds_cyc3 = (WRITE | DDS_CYC3 | 0x00000000);//Repeat indefinetly
             dds.lock();
             writeSPI(patperiod);
             writeSPI(dds_cyc3);
@@ -496,7 +497,7 @@ void sine_wave_config(){
             
         case 3:{
             wave_config[3] = 0x00003200; //Modulus for more AD9106's, also setting for continuous sine wave
-            int32_t dds_cyc4 = (WRITE | DDS_CYC4 | 0x00000000);
+            int32_t dds_cyc4 = (WRITE | DDS_CYC4 | 0x00000000);//Repeat indefinetly
             dds.lock();
             writeSPI(patperiod);
             writeSPI(dds_cyc4);
@@ -516,8 +517,8 @@ Function #: 14
 ********************************************************/ 
 void set_cycles(){
     
-    int32_t cycles = (int32_t)string1.Cycl; 
-    if(cycles > 255){
+    int32_t cycles = (int32_t)string1.Cycl; // Make sure proper truncation
+    if(cycles > 255){    // Make sure cycles isnt over the max limit 
         cycles = 255;
         }
     switch (string1.Chan){
@@ -545,7 +546,7 @@ Function #: 15
 ********************************************************/ 
 void set_Bcycles(){
     
-    float cycles = string1.BPer*string1.Freq;
+    float cycles = string1.BPer*string1.Freq;//Same as multiplying by 1 over frequency period
     int cyc = (int32_t)cycles;
     int32_t cycle = 0;
     switch (string1.Chan){
