@@ -55,7 +55,7 @@ int i=0;
 int32_t wave_config[MAX_CHAN];//gh
 int32_t pat_period[MAX_CHAN];//Use for burst pattern repeat
 char str[128];
-int ack = 1;
+char acknolegment[4];
 
 struct Chan{
     int Cnfg; //(noaction:0,sine:1, bsin:2, trigON:3, trigOFF:4)
@@ -84,21 +84,22 @@ int main() {
     
     configSPImcu();//Configure SPI parameters
     configDDSRegisters();//Default register values for SPI protocol/Power
-      
+    
+pc.gets(acknolegment, 4);
+if (strcmp("ack", acknolegment)==0){
+    pc.printf("ack1");
+    }     
+    
     while(true){
         
-        while(pc.readable()){ 
-        led2 = 0;         
-            //pc.printf("%s\n\r", str);
+        while(pc.readable()){           
             scanf("%s", str);
-            parString();
-            
-            str[0] = '\0';
-            if(ack >=4){ ack = 0;}
-            pc.printf("%i", ack);
-            ack++;
+            wait(0.5);
+            pc.printf("%s\n", str);
+            parString();     
+            str[0] = '\0'; // "flushing" the string
         }
-        led2 = 1;//Troubleshooting
+        //led2 = 1;     //Troubleshooting
         
         switch (string1.Cnfg) {// CONGIFURE CONFIG TO 0 TO SHOW MESSAGE HAS BEEN PROCESSED
 
