@@ -22,93 +22,125 @@ def portConnect():
 def commCheck(comP):
 	if comP != 'none':
 		s = serial.Serial(comP)
-		s.write("sine")
-		time.sleep(0.1)
-		x = s.read()
-		if x == 'x':
+		s.write("ack")
+		x = s.read(4)
+		if x == "ack1":
 			print ('Connected successfully')
+		else:
+			print ('Connected to wrong board')
 	else:
-		print('Connection Failure')
-		
+		print('Connection Failure')		
 	return ()
 	
 commPort = portConnect()
-#commCheck(commPort)
+commCheck(commPort)
 
 def sendInfo(comP):
-	freq = 1500000
 	chan, cnfg, cycl = 0, 0, 0
 	ampl, phas, dlay, bper, patp = 0.0, 0.0, 0.0, 0.0, 0.0
-	s = serial.Serial(comP)
-	s.write("Chan:0,Cnfg:1,Ampl:0.25,Freq:%i,Phas:0.0,Dlay:0.0,BPer:0.00,PatP:0.0,Cycl:0\n\r" %(int(freq)))
-	time.sleep(0.4)
-	x = s.read(1)
-	#print(x)
-	if (x == '1'):
-		print(x)
-		s.write("Chan:1,Cnfg:1,Ampl:0.5,Freq:%i,Phas:0.0,Dlay:0.0,BPer:0.00,PatP:0.0,Cycl:0\n\r" %(int(freq)))
+	freq = 1500000
+	string0 = "Chan:0,Cnfg:1,Ampl:0.5,Freq:%i,Phas:0.0,Dlay:0.0,BPer:0.0,PatP:0.0,Cycl:0\n" %(int(freq))
+	string1 = "Chan:1,Cnfg:1,Ampl:0.9,Freq:%i,Phas:90.0,Dlay:0.0,BPer:0.0,PatP:0.0,Cycl:0\n" %(int(freq))
+	string2 = "Chan:2,Cnfg:1,Ampl:0.0,Freq:%i,Phas:0.0,Dlay:0.0,BPer:0.0,PatP:0.0,Cycl:0\n" %(int(freq))
+	string3 = "Chan:3,Cnfg:1,Ampl:0.0,Freq:%i,Phas:0.0,Dlay:0.0,BPer:0.0,PatP:1.0,Cycl:0\n" %(int(freq))
+	s = serial.Serial(comP)	
+	check = False
+	
+	while(check != True):
+		s.write("   %s" %(string0))
 		time.sleep(0.4)
-	x = s.read(1)
-	if (x == '2'):
-		print(x)
-		s.write("Chan:2,Cnfg:1,Ampl:0.75,Freq:%i,Phas:0.0,Dlay:0.0,BPer:0.00,PatP:0.0,Cycl:0\n\r" %(int(freq)))
+		line = s.readline()
+		check = (line == string0)
+		
+	check = False
+	
+	while(check != True):
+		s.write("   %s" %(string1))
 		time.sleep(0.4)
-	x = s.read(1)
-	if (x == '3'):
-		print(x)
-		s.write("Chan:3,Cnfg:1,Ampl:0.9,Freq:%i,Phas:0.0,Dlay:0.0,BPer:0.00,PatP:0.0,Cycl:0\n\r" %(int(freq)))
+		line = s.readline()
+		check = (line == string1)
+		
+	check = False
+	
+	while(check != True):
+		s.write("   %s" %(string2))
 		time.sleep(0.4)
-	x = s.read(1)
-	if (x == '0'):
-		print("All 4 meassages have sent")
+		line = s.readline()
+		check = (line == string2)
+		
+	check = False
+	
+	while(check != True):
+		s.write("   %s" %(string3))
+		time.sleep(0.4)
+		line = s.readline()
+		check = (line == string3)
+	
+	check = False
 
-	while True: 
-		trig = raw_input("Press T to trigger or M for menu: ")
+	while True:
+		trig = raw_input("""
+		Please enter the letter corresponding with the action you would like to take:
+T - To trigger with current channel settings 
+M - For menu to change channel settings 
+Q - To quit 
+""")
 		if (trig == 't') or (trig == 'T'):
-			s.write("Chan:0,Cnfg:3,Ampl:0.0,Freq:0,Phas:0.0,Dlay:0.0,BPer:0.00,PatP:0.0,Cycl:0\n\r")
+			s.write("Chan:0,Cnfg:3,Ampl:0.0,Freq:0,Phas:0.0,Dlay:0.0,BPer:0.0,PatP:0.0,Cycl:0\n")
 			print("Triggered!")
+		
 		elif(trig == "m") or (trig == 'M'):
-			chan = raw_input("Please enter channel you'd like to configure: ")
+		
+			chan = raw_input("Please enter channel you would like to configure(0-3): ")
 			while True:	
 				param = raw_input("""Please enter the leter corresponding with the parameter you would like to configure?
-	Wave type		- W
-	Amplitude 		- A
-	Frequency		- F
-	Phase 			- P
-	Delay			- D
-	Burst per		- B
-	Pattern Per		- PP
-	Number Cycles		- N
+W -	Wave type
+A -	Amplitude
+F -	Frequency
+P -	Phase
+D -	Delay
+B -	Burst Period
+PP-	Pattern Period
+N -	Number Cycles
 	
-	Send 			- S
-	Quit			- Q
+S -	Send
+Q -	Quit
 """)
 				if (param == 'w') or (param == 'W'):
 					cnfg = raw_input(""" 
-	Sine wave	- 1
-	Burst Sine	- 2
+	1 - Sine wave
+	2 - Burst Sine
 	Wave Type: """)
 				if (param == 'a') or (param == 'A'):
-					ampl = raw_input("Amplitude: ")
+					ampl = raw_input("Amplitude(0.0 - 1.0): ")
 				if (param == 'f') or (param == 'F'):
-					freq = raw_input("Frequency: ")
+					freq = raw_input("Frequency(Hz): ")
 				if (param == 'p') or (param == 'P'):
-					phas = raw_input("Phase: ")
+					phas = raw_input("Phase(Degrees): ")
 				if (param == 'd') or (param == 'D'):
-					dlay = raw_input("Delay: ")
+					dlay = raw_input("Delay(ms): ")
 				if (param == 'b') or (param == 'B'):
-					bper = raw_input("Burst Period: ")
+					bper = raw_input("Burst Period(ms): ")
 				if (param == 'pp') or (param == 'PP'):
-					patp = raw_input("Pattern Period: ")
+					patp = raw_input("Pattern Period(ms): ")
 				if (param == 'n') or (param == 'N'):
 					cycl = raw_input("Number of Cycles: ")
 				if (param == 's') or (param == 'S'):
-					s.write("Chan:%i,Cnfg:%i,Ampl:%.2f,Freq:%i,Phas:%.2f,Dlay:%.2f,BPer:%.4f,PatP:%.2f,Cycl:%i\n\r" %(int(chan), int(cnfg), float(ampl), int(freq), float(phas), float(dlay), float(bper), float(patp), int(cycl)))
-					print("Chan:%i,Cnfg:%i,Ampl:%.2f,Freq:%i,Phas:%.2f,Dlay:%.2f,BPer:%.4f,PatP:%.2f,Cycl:%i\n\r" %(int(chan), int(cnfg), float(ampl), int(freq), float(phas), float(dlay), float(bper), float(patp), int(cycl)))
+					stringX = "Chan:%i,Cnfg:%i,Ampl:%.2f,Freq:%i,Phas:%.2f,Dlay:%.2f,BPer:%.4f,PatP:%.2f,Cycl:%i\n" %(int(chan), int(cnfg), float(ampl), int(freq), float(phas), float(dlay), float(bper), float(patp), int(cycl))
+					while(check != True):
+						s.write("   %s" %(stringX))
+						time.sleep(0.4)
+						line = s.readline()
+						check = (line == stringX)
+						print(line)
+					check = False
 					break
 				elif (param == 'q') or (param == 'Q'):
 					break
-		if(trig == 'q') or (trig == 'Q'):
-			break
 		
+		elif(trig == "q") or (param == 'Q'):
+			print ('----Done-----')
+			break
+			return ()
+	
 sendInfo(commPort)
